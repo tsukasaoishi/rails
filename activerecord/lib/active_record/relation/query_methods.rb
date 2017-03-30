@@ -1119,10 +1119,6 @@ module ActiveRecord
         order_args.flatten!
         validate_order_args(order_args)
 
-        references = order_args.grep(String)
-        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
-        references!(references) if references.any?
-
         # if a symbol is given we prepend the quoted table name
         order_args.map! do |arg|
           case arg
@@ -1137,10 +1133,16 @@ module ActiveRecord
                 arel_attribute(field).send(dir.downcase)
               end
             }
+          else String
+            arg.split(/\s*,\s*/)
           else
             arg
           end
         end.flatten!
+
+        references = order_args.grep(String)
+        references.map! { |arg| arg =~ /^([a-zA-Z]\w*)\.(\w+)/ && $1 }.compact!
+        references!(references) if references.any?
       end
 
       # Checks to make sure that the arguments are not blank. Note that if some
